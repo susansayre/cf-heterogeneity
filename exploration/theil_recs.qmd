@@ -13,7 +13,7 @@ source(here::here("R/functions.R"))
 
 ## Investigating inequality indices with RECS data
 
-As a first pass, I'm exploring what various indices look like using the RECS data. Found the very useful inequality R package, although it would be more useful if it were tidy/piping compatible.
+As a first pass, I'm exploring what various indices look like using the RECS data. Found the very useful inequality R package.
 
 ```{r prep recs data}
 #| message: false
@@ -23,6 +23,14 @@ As a first pass, I'm exploring what various indices look like using the RECS dat
 recs_data <- process_2015_recs("raw-data/recs-2015") 
 
 ```
+
+If I continue to use the inequality package, explore possible helper functions to:
+
+- make it piping/tidy compatible by taking a data frame and then using column names
+
+- modify the print method, to rename "income" in the output to whatever variable we used and print the within group GE value
+
+- allow nested decomposition
 
 ### First pass – decompose theil index by income group
 
