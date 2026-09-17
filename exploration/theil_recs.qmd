@@ -1,0 +1,96 @@
+---
+title: "Research notes"
+format: html
+editor: visual
+---
+
+```{r setup}
+library(tidyverse)
+library(inequality)
+library(janitor)
+source(here::here("R/functions.R"))
+```
+
+## Investigating inequality indices with RECS data
+
+As a first pass, I'm exploring what various indices look like using the RECS data. Found the very useful inequality R package, although it would be more useful if it were tidy/piping compatible.
+
+```{r prep recs data}
+#| message: false
+#| warning: false
+#| include: false
+#| paged-print: false
+recs_data <- process_2015_recs("raw-data/recs-2015") 
+
+```
+
+### First pass – decompose theil index by income group
+
+```{r income decomposition}
+#| echo: false
+#| message: true
+#| warning: true
+by_income <- iq_decompose(recs_data$electricity, group = as.character(recs_data$income_recs), weights = recs_data$wgt)
+
+by_income
+```
+
+Demonstrates that virtually all the variation is within income groups and very little is between groups. This implies that total electricity consumption is not very responsive to income.
+
+```{r inequality within income groups}
+#| echo: false
+#| message: true
+#| warning: true
+
+income_theil <- as_tibble(by_income$groups) |> 
+  mutate(group = factor(group, 
+                        levels = levels(recs_data$income_recs), 
+                        ordered = T)) |> 
+  rename(mean_electricity = mean_income,
+         electricity_share = income_share)
+
+income_theil |> 
+  arrange(group) |> 
+  ggplot(aes(x = group, y = within_ge)) + 
+  geom_col() + 
+  coord_flip()
+
+```
+
+Degree of inequality is pretty similar across income groups, with more inequality at the top and bottom of the distribution
+
+### Second pass – decompose theil index by census division
+
+```{r census_div decomposition}
+#| echo: false 
+#| message: true 
+#| warning: true 
+
+by_censusdiv <- iq_decompose(recs_data$electricity, 
+                             group = as.character(recs_data$census_div), 
+                             weights = recs_data$wgt)  
+
+by_censusdiv
+```
+
+Further demonstrates minimal variation between census division and large variation between census divisions
+
+```{r inequality within census div groups}
+#| echo: false
+#| message: true
+#| warning: true
+
+census_theil <- as_tibble(by_censusdiv$groups) |> 
+  mutate(group = factor(group)) |> 
+  rename(mean_electricity = mean_income,
+         electricity_share = income_share)
+
+census_theil |> 
+  arrange(group) |> 
+  ggplot(aes(x = group, y = within_ge)) + 
+  geom_col() + 
+  coord_flip()
+
+```
+
+Degree of inequality is much more variable across census divisions, with higher than usual inequality in Pacific, New England, Mid Atlantic and West/East North Central.
